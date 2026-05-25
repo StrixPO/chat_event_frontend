@@ -246,7 +246,7 @@ export function EventChat({ sessionId: sessionIdProp }: { sessionId?: string } =
     return undefined;
   };
 
-  const appendAssistant = async (mode: Parameters<typeof callAi>[0]["data"]["mode"], opts: {
+  const appendAssistant = async (mode: "ask_field" | "acknowledge_and_ask" | "ask_edit_target" | "confirm_summary" | "edit_complete", opts: {
     currentField?: FieldKey;
     previousField?: FieldKey;
     userInput?: string;
