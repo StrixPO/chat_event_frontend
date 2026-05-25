@@ -31,13 +31,22 @@ export function EventChat({ sessionId: sessionIdProp }: { sessionId?: string } =
     if (sessionIdProp && !sessionIdProp.startsWith("new-")) return sessionIdProp;
     return crypto.randomUUID?.() ?? uid();
   });
+  const [consentGiven, setConsentGiven] = useState<boolean>(
+    !!(sessionIdProp && !sessionIdProp.startsWith("new-")),
+  );
   const [messages, setMessages] = useState<Message[]>([
-    msg("assistant", "Welcome! Send a message to begin building your event."),
+    msg(
+      "assistant",
+      consentGiven
+        ? "Welcome! Send a message to begin building your event."
+        : "Before we begin, I need to let you know that the event data you provide will be stored securely. You can request deletion at any time. Do you agree?",
+    ),
   ]);
-  const [suggestions, setSuggestions] = useState<string[]>([
-    "Tell me about my event",
-    "I need help with a banner",
-  ]);
+  const [suggestions, setSuggestions] = useState<string[]>(
+    consentGiven
+      ? ["Tell me about my event", "I need help with a banner"]
+      : ["Accept", "Decline"],
+  );
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [eventCreated, setEventCreated] = useState(false);
@@ -56,6 +65,7 @@ export function EventChat({ sessionId: sessionIdProp }: { sessionId?: string } =
 
   const sendMessage = async (userMessage: string) => {
     if (!userMessage.trim() || busy) return;
+    if (!consentGiven) return;
 
     const userMsg = msg("user", userMessage);
     setMessages((prev) => [...prev, userMsg]);
@@ -95,6 +105,27 @@ export function EventChat({ sessionId: sessionIdProp }: { sessionId?: string } =
   };
 
   const handleChipClick = async (suggestion: string) => {
+    if (!consentGiven) {
+      if (suggestion === "Accept") {
+        setConsentGiven(true);
+        setMessages((prev) => [
+          ...prev,
+          msg("assistant", "Thank you. We can now begin building your event."),
+        ]);
+        setSuggestions(["Tell me about my event", "I need help with a banner"]);
+      } else if (suggestion === "Decline") {
+        setMessages((prev) => [
+          ...prev,
+          msg(
+            "assistant",
+            "You have declined consent. You cannot continue the chat until you accept.",
+          ),
+        ]);
+        setSuggestions(["Accept"]);
+      }
+      return;
+    }
+
     await sendMessage(suggestion);
   };
 
@@ -176,7 +207,7 @@ export function EventChat({ sessionId: sessionIdProp }: { sessionId?: string } =
           ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message…"
+          placeholder={consentGiven ? "Type your message…" : "Accept GDPR consent to continue."}
           rows={1}
           className="max-h-32 min-h-10 resize-none"
           onKeyDown={(e) => {
@@ -185,9 +216,9 @@ export function EventChat({ sessionId: sessionIdProp }: { sessionId?: string } =
               void onTextSubmit(e);
             }
           }}
-          disabled={busy}
+          disabled={busy || !consentGiven}
         />
-        <Button type="submit" size="icon" disabled={busy || !input.trim()}>
+        <Button type="submit" size="icon" disabled={busy || !consentGiven || !input.trim()}>
           <Send className="h-4 w-4" />
         </Button>
       </form>
