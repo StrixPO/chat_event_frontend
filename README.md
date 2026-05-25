@@ -7,6 +7,11 @@
 **Live URL:** [[FRONTEND_LIVE_URL]](https://tanstack-start-app.rusarrp.workers.dev/login?redirect=%2F)
 
 ---
+## Workflow
+<img width="800" height="350" alt="1" src="https://github.com/user-attachments/assets/348b6ad7-4b1b-4638-b728-e18065efbebb" />
+<img width="800" height="350" alt="2" src="https://github.com/user-attachments/assets/6d7e550e-f63b-4c0b-a543-a4378e8559f8" />
+<img width="800" height="350" alt="3" src="https://github.com/user-attachments/assets/07af4a1b-685c-4bd7-9bad-59ce8eecffc7" />
+
 
 ## What This Is
 
