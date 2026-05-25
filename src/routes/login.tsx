@@ -1,14 +1,15 @@
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
+import { getAuthPayload } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
   beforeLoad: async () => {
-    const { data } = await supabase.auth.getSession();
-    if (data.session) throw redirect({ to: "/" });
+    const payload = getAuthPayload();
+    if (payload?.userId) throw redirect({ to: "/" });
   },
   component: LoginPage,
 });
@@ -24,20 +25,15 @@ function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (mode === "signin") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        navigate({ to: "/" });
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin },
-        });
-        if (error) throw error;
-        toast.success("Account created. Check your email to confirm, then sign in.");
-        setMode("signin");
+      const path = mode === "signin" ? "/api/auth/login" : "/api/auth/register";
+      const res = await api.post(path, { email, password });
+      const token = res.data.access_token ?? res.data.accessToken;
+      if (!token) throw new Error("Authentication failed");
+      localStorage.setItem("access_token", token);
+      if (mode === "signup") {
+        toast.success("Account created. You are now signed in.");
       }
+      navigate({ to: "/" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {

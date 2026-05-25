@@ -1,12 +1,13 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
+import { getAuthPayload, clearAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Plus, LayoutDashboard, LogOut } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
+    const payload = getAuthPayload();
+    if (!payload?.userId) {
       throw redirect({ to: "/login", search: { redirect: location.href } as never });
     }
   },
@@ -16,7 +17,12 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthenticatedLayout() {
   const navigate = useNavigate();
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await api.post("/api/auth/logout");
+    } catch {
+      // ignore logout errors and clear local auth state anyway
+    }
+    clearAuth();
     navigate({ to: "/login" });
   };
   return (

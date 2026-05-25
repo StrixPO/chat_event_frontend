@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,9 +17,19 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2, Calendar } from "lucide-react";
 import { toast } from "sonner";
-import type { Database } from "@/integrations/supabase/types";
 
-type EventRow = Database["public"]["Tables"]["events"]["Row"];
+type EventRow = {
+  id: string;
+  event_name?: string | null;
+  subheading?: string | null;
+  description?: string | null;
+  banner_image_url?: string | null;
+  timezone?: string | null;
+  status?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  vanish_date?: string | null;
+};
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
@@ -57,14 +67,14 @@ function DashboardPage() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("events")
-      .select("*")
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false });
-    if (error) toast.error(error.message);
-    setEvents(data ?? []);
-    setLoading(false);
+    try {
+      const res = await api.get<EventRow[]>("/api/events");
+      setEvents(res.data ?? []);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to load events");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -72,32 +82,16 @@ function DashboardPage() {
   }, []);
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase
-      .from("events")
-      .update({ deleted_at: new Date().toISOString() })
-      .eq("id", id);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      await api.delete(`/api/events/${id}`);
+      toast.success("Event deleted");
+      setEvents((e) => e.filter((x) => x.id !== id));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete event");
     }
-    toast.success("Event deleted");
-    setEvents((e) => e.filter((x) => x.id !== id));
   };
 
   const handleEdit = async (eventId: string) => {
-    // Reuse an existing chat session for this event if one exists, else create one
-    const { data: existing } = await supabase
-      .from("chat_sessions")
-      .select("id")
-      .eq("event_id", eventId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (existing) {
-      navigate({ to: "/chat/$sessionId", params: { sessionId: existing.id } });
-      return;
-    }
-    toast.message("Opening editor…");
     navigate({ to: "/chat/$sessionId", params: { sessionId: `new-${eventId}` } });
   };
 
