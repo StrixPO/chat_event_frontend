@@ -14,7 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_sessions: {
+        Row: {
+          created_at: string
+          event_id: string | null
+          id: string
+          messages: Json
+          state: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          messages?: Json
+          state?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          messages?: Json
+          state?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_sessions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          banner_image_url: string | null
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          end_date: string | null
+          event_name: string | null
+          id: string
+          roles: Json | null
+          start_date: string | null
+          status: string | null
+          subheading: string | null
+          timezone: string | null
+          updated_at: string
+          user_id: string
+          vanish_date: string | null
+        }
+        Insert: {
+          banner_image_url?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          event_name?: string | null
+          id?: string
+          roles?: Json | null
+          start_date?: string | null
+          status?: string | null
+          subheading?: string | null
+          timezone?: string | null
+          updated_at?: string
+          user_id: string
+          vanish_date?: string | null
+        }
+        Update: {
+          banner_image_url?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          event_name?: string | null
+          id?: string
+          roles?: Json | null
+          start_date?: string | null
+          status?: string | null
+          subheading?: string | null
+          timezone?: string | null
+          updated_at?: string
+          user_id?: string
+          vanish_date?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
