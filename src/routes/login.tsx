@@ -34,8 +34,9 @@ function LoginPage() {
         toast.success("Account created. You are now signed in.");
       }
       navigate({ to: "/" });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } catch (err: any) {
+      const message = err?.response?.data?.error || err?.message || "Something went wrong";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
