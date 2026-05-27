@@ -27,9 +27,9 @@ function msg(role: Role, content: string): Message {
 
 export function EventChat({ sessionId: sessionIdProp }: { sessionId?: string } = {}) {
   const navigate = useNavigate();
-  const [sessionId, setSessionId] = useState<string>(() => {
+  const [sessionId, setSessionId] = useState<string | null>(() => {
     if (sessionIdProp && !sessionIdProp.startsWith("new-")) return sessionIdProp;
-    return crypto.randomUUID?.() ?? uid();
+    return null;
   });
   const [consentGiven, setConsentGiven] = useState<boolean>(
     !!(sessionIdProp && !sessionIdProp.startsWith("new-")),
@@ -74,7 +74,7 @@ export function EventChat({ sessionId: sessionIdProp }: { sessionId?: string } =
 
     try {
       const payload: { sessionId?: string; userMessage: string } = { userMessage };
-      if (sessionIdProp && !sessionIdProp.startsWith("new-")) {
+      if (sessionId) {
         payload.sessionId = sessionId;
       }
 
