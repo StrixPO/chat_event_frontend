@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://chateventbackend-production.up.railway.app",
+  baseURL: "https://chateventbackend-production.up.railway.app",
   withCredentials: true,
 });
  
